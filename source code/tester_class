@@ -1,0 +1,50 @@
+@isTest
+public class EmpInsertTest {
+    
+    @isTest
+    public static void testDuplicateEmployeeName() {
+        
+        // Step 1: Create an initial Employee record
+        Employee__c emp1 = new Employee__c();
+        emp1.Employee_Name__c = 'John Doe';
+        insert emp1;
+
+        // Step 2: Attempt to create a duplicate Employee record with the same name
+        Employee__c emp2 = new Employee__c();
+        emp2.Employee_Name__c = 'John Doe';
+
+        // Step 3: Try inserting the duplicate record and catch the expected error
+        Test.startTest();
+        try {
+            insert emp2;
+            // If no error is thrown, the test should fail
+            System.assert(false, 'Expected a duplicate name error, but none was thrown.');
+        } catch (DmlException e) {
+            // Verify that the error message matches the one from the trigger
+            System.assert(e.getMessage().contains('Employee with same name is existing'), 'Unexpected error message: ' + e.getMessage());
+        }
+        Test.stopTest();
+    }
+    
+    @isTest
+    public static void testUniqueEmployeeName() {
+        
+        // Step 1: Create an initial Employee record
+        Employee__c emp1 = new Employee__c();
+        emp1.Employee_Name__c = 'Jane Doe';
+        insert emp1;
+
+        // Step 2: Create another Employee record with a unique name
+        Employee__c emp2 = new Employee__c();
+        emp2.Employee_Name__c = 'Mark Smith';
+        
+        // Step 3: Insert the unique record; this should not throw an error
+        Test.startTest();
+        insert emp2;
+        Test.stopTest();
+
+        // Verify that both records were inserted successfully
+        List<Employee__c> employees = [SELECT Id, Employee_Name__c FROM Employee__c WHERE Employee_Name__c IN ('Jane Doe', 'Mark Smith')];
+        System.assertEquals(2, employees.size(), 'Expected 2 employees to be inserted.');
+    }
+}
